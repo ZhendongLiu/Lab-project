@@ -10,6 +10,7 @@ def create_semcor_data_files():
 
 	print("loading semcor...")
 	sentences = semcor.chunk_sents()
+        # don't hardcode the split
 	senses = [[str(c) for c in s] for s in semcor.tagged_sents(tag = 'both')[:37176]]
 	
 	with open('sense.pkl','wb') as outfile:
@@ -30,8 +31,10 @@ def semcor_raw_sentences():
 		print(idx)
 		idx += 1
 
+                # wow
 		flat_sentence = [token for sublist in sentence for token in sublist]
 		flat_sentence_string = ' '.join(flat_sentence)
+                # move this into cleaning code
 		flat_sentence_string.replace('-','')
 		raw_sentences.append(flat_sentence_string)
 
@@ -40,7 +43,8 @@ def semcor_raw_sentences():
 def fetch_trips_types(sentence):
 	words_with_ontologies = {}
 	tagging = st.tag_sentence(sentence)
-
+        # get_key = lambda s: sorted([s.key() for s in s.lemmas()])[0]
+        # tagging = [[get_key(s) for s in wn.synsets(token.text, token.pos_[0])] for token in nlp(sentence) if token.pos_[0] in 'nv']
 	for j, i in tagging:
 		if str(i) not in words_with_ontologies:
 			j = frozenset([str(s) for s in j])
@@ -57,6 +61,7 @@ def pickle_from_raw_texts(sentences):
 
 		token_to_a_set = fetch_trips_types(sentence)
 
+                # make this a seperate function
 		words = ['_START_']
 		dic = {'_START_':'_START_'}
 
