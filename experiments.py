@@ -1,8 +1,13 @@
 import pickle
+
+import util_codes.simple_tagger as st
+from uitl_codes.utils import *
+
 from pytrips.ontology import load as load_ontology
-import simple_tagger as st
 from pytrips.tools import nlp
+
 from nltk.corpus import wordnet as wn
+
 import numpy
 
 #TODO:
@@ -19,6 +24,15 @@ vocab_to_types = dict() # word to list
 vocab_to_a_sets = dict() # word to an a_sets, can be modified to a list of a_sets
 #should be loaded from files
 #learning git
+
+all_A_sets = pickle.load(open("data/all_A_sets_size{}.pkl".format(n_gram_size),"rb"))
+id_to_A_sets = pickle.load(open("data/id_to_A_sets_size{}.pkl".format(n_gram_size),'rb'))
+n_gram_count = pickle.load(open('data/n_gram_count_size{}.pkl'.format(n_gram_size),'rb'))
+s_to_sets = pickle.load(open('data/s_to_sets_size{}.pkl'.format(n_gram_size),'rb'))
+sub_n_gram_count = pickle.load(open('data/sub_n_gram_count_size{}.pkl'.format(n_gram_size),'rb'))
+
+
+
 
 
 W = numpy.zeros((len(vocab), len(types)))
@@ -70,6 +84,8 @@ def new_whole_sent_distribution(sentence):
 
 n_gram_size = 1
 
+
+
 def main():
 	'''
 	python3 decoder1.py [size] semcor 
@@ -82,16 +98,7 @@ def main():
 	files = list()
 	
 
-	all_A_sets = pickle.load(open("all_A_sets_size{}.pkl".format(n_gram_size),"rb"))
-	files.append(all_A_sets)
-	id_to_A_sets = pickle.load(open("id_to_A_sets_size{}.pkl".format(n_gram_size),'rb'))
-	files.append(id_to_A_sets)
-	n_gram_count = pickle.load(open('n_gram_count_size{}.pkl'.format(n_gram_size),'rb'))
-	files.append(n_gram_count)
-	s_to_sets = pickle.load(open('s_to_sets_size{}.pkl'.format(n_gram_size),'rb'))
-	files.append(s_to_sets)
-	sub_n_gram_count = pickle.load(open('sub_n_gram_count_size{}.pkl'.format(n_gram_size),'rb'))
-	files.append(sub_n_gram_count)
+	
 
 	if sys.argv[2] == "semcor":
 		test_semcor(n_gram_size, files)
@@ -154,17 +161,11 @@ def distribution_one_gram(gram, posi, files):
 	'''
 	only consider the case where gram[posi] is a set of senses
 	it should be garantee that gram[posi] is an a-set
+	
 
 				
 
 	'''
-	all_A_sets = files[0]
-	id_to_A_sets = files[1]
-	n_gram_count = files[2]
-	s_to_sets = files[3]
-	sub_n_gram_count = files[4]
-
-
 
 	V = len(all_A_sets)
 	ID = V
@@ -266,6 +267,8 @@ def sort_result(r):
 	return lst
 
 def naive_whole_sent_distribution(sent, n_gram_size,files):
+
+	#this function provides the baseline score
 
 	s_to_sets = files[3]
 	words, taggings, dic = pre_process_sent(sent)

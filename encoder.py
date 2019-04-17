@@ -5,11 +5,6 @@ laplace
 import pickle
 
 
-
-
-
-
-
 def load_sentences():
 	
 	sentences = pickle.load(open("training.pkl","rb"))
@@ -98,11 +93,11 @@ def count(n_gram_size):
 	s_to_sets = dict()
 
 	'''
-	pickle.dump(all_A_sets, open('all_A_sets_size{}.pkl'.format(n_gram_size),'wb'))
-	pickle.dump(id_to_A_sets, open('id_to_A_sets_size{}.pkl'.format(n_gram_size),'wb'))
-	pickle.dump(n_gram_count,open('n_gram_count_size{}.pkl'.format(n_gram_size),'wb'))
-	pickle.dump(s_to_sets, open('s_to_sets_size{}.pkl'.format(n_gram_size),'wb'))
-	pickle.dump(sub_n_gram_count,open('sub_n_gram_count_size{}.pkl'.format(n_gram_size),'wb'))
+	pickle.dump(all_A_sets, open('data/all_A_sets_size{}.pkl'.format(n_gram_size),'wb'))
+	pickle.dump(id_to_A_sets, open('data/id_to_A_sets_size{}.pkl'.format(n_gram_size),'wb'))
+	pickle.dump(n_gram_count,open('data/n_gram_count_size{}.pkl'.format(n_gram_size),'wb'))
+	pickle.dump(s_to_sets, open('data/s_to_sets_size{}.pkl'.format(n_gram_size),'wb'))
+	pickle.dump(sub_n_gram_count,open('data/sub_n_gram_count_size{}.pkl'.format(n_gram_size),'wb'))
 
 def main():
 	import sys

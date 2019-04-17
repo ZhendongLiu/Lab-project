@@ -1,3 +1,6 @@
+from pytrips.tools import nlp
+from util_codes import simple_tagger as st
+
 #util functions
 def ngrams(tokens, n):
 	'''
@@ -37,7 +40,7 @@ def gram_id(n_gram):
 
 def pre_process_sent(sent):
 	
-	token_to_a_set = fetch_trips_types(sent)
+	token_to_a_set = tag_a_sentence(sent)
 	words = ['_START_']
 	dic = {'_START_':'_START_'} #potential problem: is it possible that one word has different tags?
 	doc = nlp(sent)
@@ -101,6 +104,9 @@ def tag_a_sentence(sentence):
 
 			words_with_ontologies[str(i)] = j
 	return words_with_ontologies
+
+def tag_a_sentence_wn(sentence):
+	pass
 
 
 
