@@ -5,6 +5,8 @@ logging.basicConfig(level=logging.CRITICAL)
 from pytrips.ontology import load as load_ontology
 from pytrips.helpers import Normalize
 from pytrips.tools import nlp
+from nltk.corpus import wn
+
 
 
 #import spacy
@@ -30,6 +32,16 @@ def tag_word(token):
     res += llookup["wn"]
 
     return set(res)
+
+def tag_word_wn(token):
+    pos = Normalize.spacy_pos(token.pos_)
+    word = token.text.lower()
+    lemma = token.lemma_
+
+    if pos not in "nvar":
+        return set()
+
+    return set(wn.synsets(word, pos))
 
 def tag_sentence(sentence):
     sentence = nlp(sentence)

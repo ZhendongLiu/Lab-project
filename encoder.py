@@ -7,7 +7,7 @@ import pickle
 
 def load_sentences():
 	
-	sentences = pickle.load(open("training.pkl","rb"))
+	sentences = pickle.load(open("data/training.pkl","rb"))
 	words = list()
 	tags = list()
 
