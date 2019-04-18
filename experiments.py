@@ -1,10 +1,10 @@
 import pickle
 
 import util_codes.simple_tagger as st
-from uitl_codes.utils import *
+from util_codes.utils import *
 
-from pytrips.ontology import load as load_ontology
-from pytrips.tools import nlp
+#from pytrips.ontology import load as load_ontology
+#from pytrips.tools import nlp
 
 from nltk.corpus import wordnet as wn
 
@@ -15,53 +15,79 @@ import numpy
 #2. finish test_semcor
 #3. remember to consider all test cases 
 
-ont = load_ontology()
+#ont = load_ontology()
+
+n_gram_size = 3
 
 vocab = pickle.load(open("data/vocab.pkl","rb"))
 types = pickle.load(open("data/types.pkl","rb"))
 a_sets = pickle.load(open("data/a_sets.pkl","rb"))
-vocab_to_types = pickle.load(open("vocab_to_types.pkl",'rb')) # word to list 
-vocab_to_a_sets = pickle.load(open("vocab_to_a_sets.pkl",'rb')) # word to an a_sets, can be modified to a list of a_sets
+vocab_to_types = pickle.load(open("data/vocab_to_types.pkl",'rb')) # word to list 
+vocab_to_a_sets = pickle.load(open("data/vocab_to_a_sets.pkl",'rb')) # word to an a_sets, can be modified to a list of a_sets
 #should be loaded from files
 #learning git
 
+'''
+vocab_to_idx = dict()
+for i in range(len(vocab)):
+	vocab_to_idx[vocab[i]] = i
+
+pickle.dump(vocab_to_idx,open("data/vocab_to_idx.pkl",'wb'))
+
+'''
+vocab_to_idx = pickle.load(open("data/vocab_to_idx.pkl",'rb'))
+
+
 #if we are doing n_gram for types
+'''
 all_A_sets = pickle.load(open("data/all_A_sets_size{}.pkl".format(n_gram_size),"rb"))
 id_to_A_sets = pickle.load(open("data/id_to_A_sets_size{}.pkl".format(n_gram_size),'rb'))
 n_gram_count = pickle.load(open('data/n_gram_count_size{}.pkl'.format(n_gram_size),'rb'))
 s_to_sets = pickle.load(open('data/s_to_sets_size{}.pkl'.format(n_gram_size),'rb'))
 sub_n_gram_count = pickle.load(open('data/sub_n_gram_count_size{}.pkl'.format(n_gram_size),'rb'))
-
+'''
 #if we are doint n_gram for words
-n_gram_count_word = pickle.load(open("data/n_gram_count_word_size3",'rb'))
-sub_n_gram_count_word = pickle.load(open("data/sub_n_gram_count_word_size3",'rb'))
+n_gram_count_word = pickle.load(open("data/n_gram_count_word_size3.pkl",'rb'))
+sub_n_gram_count_word = pickle.load(open("data/sub_n_gram_count_word_size3.pkl",'rb'))
 
 
+'''
 W = numpy.zeros((len(vocab), len(types)))
 
-
-for i in len(vocab):
-	for j in len(types):
+print("48")
+for i in range(len(vocab)):
+	for j in range(len(types)):
 		if types[j] in vocab_to_types[vocab[i]]:
 			W[i][j] = 1
+'''
+from scipy.sparse import csc_matrix
 
+W = numpy.load(open("data/W.pkl",'rb'))
+
+'''
+print("54")
 A = numpy.zeros((len(vocab),len(a_sets)))
 
-for i in len(vocab):
-	for j in len(a_sets):
+for i in range(len(vocab)):
+	for j in range(len(a_sets)):
 		if a_sets[j] == vocab_to_a_sets[vocab[i]]:
 			A[i][j] = 1
+print("61")
+'''
+A = numpy.load(open("data/A.pkl",'rb'))
+a_sparse = csc_matrix(A)
 
+'''
+S = numpy.zeros((len(a_sets),len(types)))
 
-S = numpy.zeros((len(a_sets),len(types))):
-
-for i in len(a_sets):
-	for j in len(types):
+for i in range(len(a_sets)):
+	for j in range(len(types)):
 		if types[j] in a_sets[i]:
 			S[i][j] = 1
-
-
-
+print("51")
+'''
+S = numpy.load(open("data/S.pkl",'rb'))
+s_sparse = csc_matrix(S)
 
 def word_distribution_to_td(word_d, word_index):
 	'''
@@ -70,12 +96,22 @@ def word_distribution_to_td(word_d, word_index):
 	A: w x a
 	S: a x t
 	'''
-	a_sets_given_context = word_d.T * A # w x a
-	flat_a_set_distribution = np.sum(a_sets_given_context, axis = 0) #1 x a
-	t_distribution = np.matmul(flat_a_set_distribution.reshape(1,len(flat_a_set_distribution)) , S)
-	flat_t_distribution = np.sum(t_distribution, axis = 0) #1 x t
+
+	from scipy.sparse import csc_matrix
+
+	
+
+	flat_a_set_distribution = word_d * a_sparse
+
+	#a_sets_given_context = word_d.T.reshape(len(word_d),1) * A # w x a
+	#flat_a_set_distribution = numpy.sum(a_sets_given_context, axis = 0) #1 x a
+		
+
+	flat_t_distribution = flat_a_set_distribution * s_sparse
+
 	t_in_w_distribution = W[word_index] * flat_t_distribution
 
+	print("95")
 	return t_in_w_distribution
 
 def word_distribution_from_ngram(ngram):
@@ -88,8 +124,8 @@ def word_distribution_from_ngram(ngram):
 
 	V  = len(vocab)
 
-	B1 = V ** 3
-	B2 = V ** 2
+	B1 = V * 3 
+	B2 = V * 2
 
 	
 	sub_gram = list(ngram)
@@ -112,28 +148,62 @@ def word_distribution_from_ngram(ngram):
 
 		if ngram in n_gram_count_word:
 			ngram_count = n_gram_count_word[ngram]
-		else
+		else:
 			ngram_count = 0
 
 	
 		p1 = laplace_estimate(ngram_count,N1, B1)
 		distribution.append(p1/p2)
-	
+		
 
-	return distribution
+	return numpy.array(distribution)
 
 
 def whole_sent_distribution_1(sentence):
 	'''
-	
+
+	input: a raw sentence
+	return:
 	'''
+	words, taggings, dic = pre_process_sent(sentence)
+	words.insert(0,"_START_")
 
-	pass
+	n_grams = ngrams(words, 3)
+	words_distributions = ["_START_"]
+
+	print(n_grams)
+	for g in n_grams:
+		
+		word = g[2]
+		
+		if word == '_END_':
+			break
+
+		if type(dic[word]) == str:
+			words_distributions.append(dic[word])
+			continue
+
+		word_distribution = word_distribution_from_ngram(g)
+		type_distribution = word_distribution_to_td(word_distribution, vocab_to_idx[word])
+
+		distribution = dict()
+		
+		for i in range(len(type_distribution)):
+			if type_distribution[i] != 0:
+				distribution[types[i]] = type_distribution[i]
+
+		distribution = sort_result(distribution)
+		words_distributions.append(distribution)
+
+	
+	return [i for i in zip(words[1:], words_distributions)]
 
 
 
 
-n_gram_size = 1
+
+
+
 
 
 
@@ -144,15 +214,12 @@ def main():
 	python3 decoder1.py [size] "[sent]" word
 	'''
 	import sys
-	n_gram_size = int(sys.argv[1])
-
-	files = list()
+	sent_size = int(sys.argv[1])
 	
-
 	
 
 	if sys.argv[2] == "semcor":
-		test_semcor(n_gram_size, files)
+		test_semcor_v1(sent_size)
 
 
 def laplace_estimate(count, N, B):
@@ -382,6 +449,131 @@ def clean_lemma(lemma):
 	split_lemma = lemma.split('.')
 	return '.'.join(split_lemma[:3])
 
+def test_semcor_v1(size):
+	from nltk.corpus import semcor
+
+	sentences = semcor.chunk_sents()
+	sentences = sentences[:size]
+
+	senses = pickle.load(open("data/sense.pkl",'rb'))
+	idx = 0
+
+	total = 0 #total words that the model should give answer to
+	top1 = 0 # number of words that the top-1 rated sense is correct
+	top2 = 0 # number of words that the top-2 rated sense is correct
+	trivil = 0 #number of words that the model gives non-zero distribution but there is only one sense
+
+	for sentence in sentences:
+
+		wn_tagging = senses[idx]
+		idx += 1
+
+		words = list()
+		word_to_type = dict()
+
+		for sublist, wn_tag in zip(sentence, wn_tagging):
+
+			if len(sublist) == 1:
+				word = sublist[0]
+				words.append(word)
+				string, pos_tag, lemma = parse_tagged_chunks(wn_tag)
+
+				lemma = clean_lemma(lemma)
+
+				if '.' in lemma:
+					try:
+						synset = wn.synset(lemma)
+					except:
+						continue
+
+					if not (synset.pos() == 'v' or synset.pos() == 'n'):
+						continue
+
+					print(synset)
+					
+					if word not in word_to_type:
+						word_to_type[word] = [synset]
+					else:
+						word_to_type[word].append(synset)
+			else:
+				for word in sublist:
+					words.append(word)
+
+		sentence_str = ' '.join(words)
+		print("sentence No.{}\n{}".format(idx, sentence_str))
+		words_distributions = whole_sent_distribution_1(sentence_str)
+
+		print(word_to_type)
+		occurance = dict()
+		for word, distribution in words_distributions:
+			
+			if type(distribution) == str:
+				print("\tword:{}, tag:{}".format(word, distribution))
+				#idx1 += len(word.split())
+			
+			#fetch type
+			else:
+				try:
+					#if this word has a wn-tagging
+					if word in word_to_type:
+						if word not in occurance:
+							occurance[word] = 0
+						else:
+							occurance[word] += 1
+						t = word_to_type[word][occurance[word]]
+					else:
+						continue
+					
+				except:
+					continue
+				#onts = right_tag[idx1]
+
+				#if onts == "NON":
+				#	idx1 += 1
+				#	continue
+				#print("\tright word:{}".format(words[idx1]))
+				#idx1 += 1
+				total += 1
+
+				print("\tword:{}, correct sense:{}".format(word, t))
+
+				for i in range(len(distribution)):
+						print("\t\t{}".format(distribution[i]))
+				first_second = 1
+				
+
+				for i in range(len(distribution)):
+						if i == 0 and distribution[i][1] == 0:
+							zero_distribution += 1
+							break
+						elif first_second == 1:
+							if str(distribution[i][0]) == str(t):
+								top1 += 1
+								top2 += 1
+								if len(distribution) == 1:
+									trivil += 1
+							if i + 1 < len(distribution):
+								if distribution[i][1] != distribution[i+1][1]:
+									first_second += 1
+							
+						elif first_second == 2 and distribution[i][1] != 0:
+							if str(distribution[i][0]) == str(t):
+								top2 += 1
+							if i+1 < len(distribution):
+								if distribution[i][1] != distribution[i+1][1]:
+									first_second += 1
+
+
+			
+					
+
+		print("total tasks:{}".format(total))
+		#print("zero_distribution:{}, percentage:{}".format(zero_distribution, zero_distribution/total))
+		print("top1 correct     :{}, percentage:{}".format(top1,top1/total))
+		print("top2 correct     :{}, percentage:{}".format(top2, top2/total))
+		print("trivial          :{}, percentage:{}".format(trivil, trivil/total))
+		
+
 
 def test_semcor(n_gram_size,files):
 	'''
@@ -397,7 +589,7 @@ def test_semcor(n_gram_size,files):
 	sentences = semcor.chunk_sents()
 	#training_size = int(len(sentences)*(9/10))
 	#sentences = sentences[training_size:]
-	senses = pickle.load(open("sense.pkl",'rb'))
+	senses = pickle.load(open("data/sense.pkl",'rb'))
 	#senses = senses[training_size:]
 	idx = 0
 
@@ -524,11 +716,11 @@ def test_semcor(n_gram_size,files):
 					
 
 		print("total tasks:{}".format(total))
-		print("zero_distribution:{}, percentage:{}".format(zero_distribution, zero_distribution/total))
+		#print("zero_distribution:{}, percentage:{}".format(zero_distribution, zero_distribution/total))
 		print("top1 correct     :{}, percentage:{}".format(top1,top1/total))
 		print("top2 correct     :{}, percentage:{}".format(top2, top2/total))
 		print("trivial          :{}, percentage:{}".format(trivil, trivil/total))
-		print("noisy            :{}, percentage:{}".format(noisy, noisy/total))
+		#print("noisy            :{}, percentage:{}".format(noisy, noisy/total))
 
 
 
