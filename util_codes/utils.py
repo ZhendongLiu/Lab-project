@@ -97,7 +97,7 @@ def pre_process_sent(sent):
 def tag_a_sentence(sentence):
 	words_with_ontologies = {}
 	tagging = st.tag_sentence(sentence)
-
+	
 	for j, i in tagging:
 		if str(i) not in words_with_ontologies:
 			j = frozenset([str(s) for s in j])
@@ -105,8 +105,6 @@ def tag_a_sentence(sentence):
 			words_with_ontologies[str(i)] = j
 	return words_with_ontologies
 
-def tag_a_sentence_wn(sentence):
-	pass
 
 
 

@@ -3,7 +3,7 @@ laplace
 '''
 
 import pickle
-
+from util_codes.utils import *
 
 def load_sentences():
 	
@@ -27,7 +27,46 @@ def load_sentences():
 
 	return words, tags
 
-def count(n_gram_size):
+def count_word(n_gram_size):
+	'''
+	use previous two words
+	'''
+	sentences,_ = load_sentences()
+
+	n_gram_count = dict()
+	sub_n_gram_count = dict()
+	
+
+	idx = 0
+	for sentence in sentences:
+
+		print(idx)
+		idx += 1
+
+		sentence.insert(0,"_START_")
+		n_grams = ngrams(sentence, n_gram_size)
+
+		for g in n_grams:
+			if g in n_gram_count:
+				n_gram_count[g] += 1
+			else:
+				n_gram_count[g] = 1
+
+			sub_g = list(g)
+			sub_g = tuple(sub_g[:-1])
+
+			if sub_g in sub_n_gram_count:
+				sub_n_gram_count[sub_g] += 1
+			else:
+				sub_n_gram_count[sub_g] = 1
+
+	pickle.dump(n_gram_count, open('data/n_gram_count_word_size{}.pkl'.format(n_gram_size),'wb'))
+	pickle.dump(sub_n_gram_count, open('data/sub_n_gram_count_word_size{}.pkl'.format(n_gram_size),'wb'))
+
+
+
+
+def count_sense(n_gram_size):
 	words, sentences = load_sentences()
 
 	n_gram_count = dict() #N1
@@ -103,7 +142,7 @@ def main():
 	import sys
 	n_gram_size = int(sys.argv[1])
 	
-	count(n_gram_size)
+	count_word(n_gram_size)
 
 
 main()

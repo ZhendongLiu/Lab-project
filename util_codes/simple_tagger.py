@@ -5,7 +5,7 @@ logging.basicConfig(level=logging.CRITICAL)
 from pytrips.ontology import load as load_ontology
 from pytrips.helpers import Normalize
 from pytrips.tools import nlp
-from nltk.corpus import wn
+from nltk.corpus import wordnet as wn
 
 
 
@@ -20,7 +20,7 @@ def tag_word(token):
     lemma = token.lemma_
 
     if pos not in "nvar": # if the pos is not in wordnet
-        return set()
+        return set(),word
 
     # word lookup:
     wlookup = ont[("q::"+word, pos)]
@@ -31,7 +31,7 @@ def tag_word(token):
     res += llookup["lex"]
     res += llookup["wn"]
 
-    return set(res)
+    return (frozenset(res),word)
 
 def tag_word_wn(token):
     pos = Normalize.spacy_pos(token.pos_)
@@ -39,11 +39,12 @@ def tag_word_wn(token):
     lemma = token.lemma_
 
     if pos not in "nvar":
-        return set()
+        return frozenset(),word
 
-    return set(wn.synsets(word, pos))
+    return frozenset(wn.synsets(word, pos)), word
 
 def tag_sentence(sentence):
     sentence = nlp(sentence)
-    return zip([tag_word(token) for token in sentence], sentence)
+    
+    return [tag_word_wn(token) for token in sentence]
 

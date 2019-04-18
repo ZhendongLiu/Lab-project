@@ -20,7 +20,7 @@ ont = load_ontology()
 vocab = list() 
 types = list()
 a_sets = list()
-vocab_to_types = dict() # word to list
+vocab_to_types = dict() # word to list 
 vocab_to_a_sets = dict() # word to an a_sets, can be modified to a list of a_sets
 #should be loaded from files
 #learning git
