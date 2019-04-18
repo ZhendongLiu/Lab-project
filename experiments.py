@@ -17,22 +17,24 @@ import numpy
 
 ont = load_ontology()
 
-vocab = list() 
-types = list()
-a_sets = list()
-vocab_to_types = dict() # word to list 
-vocab_to_a_sets = dict() # word to an a_sets, can be modified to a list of a_sets
+vocab = pickle.load(open("data/vocab.pkl","rb"))
+types = pickle.load(open("data/types.pkl","rb"))
+a_sets = pickle.load(open("data/a_sets.pkl","rb"))
+vocab_to_types = pickle.load(open("vocab_to_types.pkl",'rb')) # word to list 
+vocab_to_a_sets = pickle.load(open("vocab_to_a_sets.pkl",'rb')) # word to an a_sets, can be modified to a list of a_sets
 #should be loaded from files
 #learning git
 
+#if we are doing n_gram for types
 all_A_sets = pickle.load(open("data/all_A_sets_size{}.pkl".format(n_gram_size),"rb"))
 id_to_A_sets = pickle.load(open("data/id_to_A_sets_size{}.pkl".format(n_gram_size),'rb'))
 n_gram_count = pickle.load(open('data/n_gram_count_size{}.pkl'.format(n_gram_size),'rb'))
 s_to_sets = pickle.load(open('data/s_to_sets_size{}.pkl'.format(n_gram_size),'rb'))
 sub_n_gram_count = pickle.load(open('data/sub_n_gram_count_size{}.pkl'.format(n_gram_size),'rb'))
 
-
-
+#if we are doint n_gram for words
+n_gram_count_word = pickle.load(open("data/n_gram_count_word_size3",'rb'))
+sub_n_gram_count_word = pickle.load(open("data/sub_n_gram_count_word_size3",'rb'))
 
 
 W = numpy.zeros((len(vocab), len(types)))
@@ -76,7 +78,56 @@ def word_distribution_to_td(word_d, word_index):
 
 	return t_in_w_distribution
 
-def new_whole_sent_distribution(sentence):
+def word_distribution_from_ngram(ngram):
+	'''
+	for word we are using two previous words as context
+	and laplace estimater
+	'''
+	N1 = len(n_gram_count_word)
+	N2 = len(sub_n_gram_count_word)
+
+	V  = len(vocab)
+
+	B1 = V ** 3
+	B2 = V ** 2
+
+	
+	sub_gram = list(ngram)
+	sub_gram = tuple(sub_gram[:-1])
+
+	if sub_gram in sub_n_gram_count_word:
+		sub_count = sub_n_gram_count_word[sub_gram]
+	else:
+		sub_count = 0
+
+	p2 = laplace_estimate(sub_count,N2, B2)
+	
+	distribution = []
+
+	for w in vocab:
+		ngram = list(ngram)
+		ngram.pop(2)
+		ngram.insert(2,w)
+		ngram = tuple(ngram)
+
+		if ngram in n_gram_count_word:
+			ngram_count = n_gram_count_word[ngram]
+		else
+			ngram_count = 0
+
+	
+		p1 = laplace_estimate(ngram_count,N1, B1)
+		distribution.append(p1/p2)
+	
+
+	return distribution
+
+
+def whole_sent_distribution_1(sentence):
+	'''
+	
+	'''
+
 	pass
 
 
@@ -102,52 +153,6 @@ def main():
 
 	if sys.argv[2] == "semcor":
 		test_semcor(n_gram_size, files)
-
-
-
-
-
-
-
-
-
-
-
-def ngrams(tokens,n):
-	'''
-	return all n-grams of tokens as a list of tuples
-	'''
-	return [i for i in zip(*[tokens[i:] for i in range(n)])]
-
-def sort(tu):
-	lst = list(tu) 
-	n = len(lst) 
-	for i in range(n): 
-		for j in range(0, n-i-1): 
-			if lst[j] > lst[j+1]: 
-				lst[j], lst[j+1] = lst[j+1], lst[j] 
-	return tuple(lst)	
-
-def gram_id(n_gram):
-	'''
-	assume n_gram is alrealy a tuple of integers
-	'''
-	return str('.'.join([str(i) for i in n_gram]))
-
-def fetch_trips_types(sentence):
-	'''
-	return dictionary of word mapped to its TRIPS A-set
-	reference: original code
-	'''
-	words_with_ontologies = {}
-	tagging = st.tag_sentence(sentence)
-	for j, i in tagging:
-		if str(i) not in words_with_ontologies:
-			j = frozenset([str(s) for s in j])
-
-			words_with_ontologies[str(i)] = j
-	return words_with_ontologies
-
 
 
 def laplace_estimate(count, N, B):
