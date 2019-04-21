@@ -12,6 +12,24 @@ import numpy
 
 
 
+def text8_raw_sentences(length):
+	
+	'''
+	may want to replace the lower frequency words
+	'''
+	from gensim.summarization import textcleaner
+
+	text_file = open("text")
+	text = text_file.read()
+
+	sentences = textcleaner.get_sentences(text)
+	sentences = [i for i in sentences]
+
+	if length != -1:
+		return sentences[:length]
+	else:
+		return sentences
+
 
 def create_semcor_data_files(length):
 
@@ -23,7 +41,12 @@ def create_semcor_data_files(length):
 		pickle.dump(senses, outfile, pickle.HIGHEST_PROTOCOL)
 
 	print("semcor loaded")
-	return sentences[:length]
+	
+	if length != -1:
+
+		return sentences[:length]
+	else:
+		return sentences
 
 def semcor_raw_sentences(length):
 
@@ -46,7 +69,7 @@ def semcor_raw_sentences(length):
 
 
 
-def pickle_from_raw_texts(sentences):
+def pickle_from_raw_texts(sentences, cor_name):
 	'''
 	preprocess a list of raw sentences 
 	'''
@@ -66,12 +89,17 @@ def pickle_from_raw_texts(sentences):
 
 		token_to_a_set = tag_a_sentence(sentence)
 
-		print(idx)
-		print(sentence)
+		
 
-		idx += 1
+		
 		words, taggings, dic = pre_process_sent(sentence)
 		
+		if len(words) <= 20:
+			continue
+		
+		print(idx)
+		print('|'.join(words))
+		idx += 1
 		#store each word, sense, a_set and the mapping from word to types, from word to a_set
 		pairs = []
 		for word, tag in zip(words, taggings):
@@ -79,6 +107,7 @@ def pickle_from_raw_texts(sentences):
 			pair = (word,tag)
 			pairs.append(pair)
 			
+
 			vocab.add(word)
 			a_sets.add(tag)
 			vocab_to_a_sets[word] = tag
@@ -119,28 +148,28 @@ def pickle_from_raw_texts(sentences):
 	testing = result[training_size:]
 	#result = tuple(result)
 
-	with open('data/sentences.pkl','wb') as outfile:
+	with open('data/{}_sentences.pkl'.format(cor_name),'wb') as outfile:
 		pickle.dump(result, outfile, pickle.HIGHEST_PROTOCOL)
 
-	with open('data/training.pkl','wb') as outfile:
+	with open('data/{}_training.pkl'.format(cor_name),'wb') as outfile:
 		pickle.dump(training, outfile, pickle.HIGHEST_PROTOCOL)
 
-	with open('data/testing.pkl','wb') as outfile:
+	with open('data/{}_testing.pkl'.format(cor_name),'wb') as outfile:
 		pickle.dump(testing, outfile, pickle.HIGHEST_PROTOCOL)
 
-	with open('data/vocab.pkl','wb') as outfile:
+	with open('data/{}_vocab.pkl'.format(cor_name),'wb') as outfile:
 		pickle.dump(list(vocab), outfile, pickle.HIGHEST_PROTOCOL)
 
-	with open('data/types.pkl','wb') as outfile:
+	with open('data/{}_types.pkl'.format(cor_name),'wb') as outfile:
 		pickle.dump(list(types), outfile, pickle.HIGHEST_PROTOCOL)
 
-	with open('data/a_sets.pkl','wb') as outfile:
+	with open('data/{}_a_sets.pkl'.format(cor_name),'wb') as outfile:
 		pickle.dump(list(a_sets), outfile, pickle.HIGHEST_PROTOCOL)
 
-	with open('data/vocab_to_types.pkl','wb') as outfile:
+	with open('data/{}_vocab_to_types.pkl'.format(cor_name),'wb') as outfile:
 		pickle.dump(vocab_to_types, outfile, pickle.HIGHEST_PROTOCOL)
 
-	with open('data/vocab_to_a_sets.pkl','wb') as outfile:
+	with open('data/{}_vocab_to_a_sets.pkl'.format(cor_name),'wb') as outfile:
 		pickle.dump(vocab_to_a_sets, outfile, pickle.HIGHEST_PROTOCOL)
 
 
@@ -150,10 +179,13 @@ def pickle_from_raw_texts(sentences):
 def main():
 	import sys
 
-	if len(sys.argv) == 1:
-		pickle_from_raw_texts(semcor_raw_sentences(37175))
-	else:
-		data_length = int(sys.argv[1])
-		pickle_from_raw_texts(semcor_raw_sentences(data_length))
+	#length = -1 if you want all
+	name = sys.argv[1]
+	length = int(sys.argv[2])
 
+	if name == 'semcor':
+		pickle_from_raw_texts(semcor_raw_sentences(length),name)
+	else:
+		pickle_from_raw_texts(text8_raw_sentences(length),name)
+	
 main()

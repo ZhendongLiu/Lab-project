@@ -51,6 +51,9 @@ def pre_process_sent(sent):
 		
 		token = doc[i]
 
+		if str(token) == '':
+			i += 1
+			continue
 		if token.ent_type_ != '':
 			tag = token.ent_type_
 			ent = []
@@ -73,7 +76,10 @@ def pre_process_sent(sent):
 			#words.append(str(token))
 			
 			#dic[str(token)] = "_PUNCT_"
-				
+		elif '*' in str(token) or '=' in str(token) or '#' in str(token):
+			i += 1
+			continue		
+
 
 		elif token.is_stop:
 			words.append(str(token))
