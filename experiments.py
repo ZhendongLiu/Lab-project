@@ -10,20 +10,22 @@ from nltk.corpus import wordnet as wn
 
 import numpy
 
+import sys
 #TODO:
 #1. check the case where size = 1
 #2. finish test_semcor
 #3. remember to consider all test cases 
 
 #ont = load_ontology()
+cor_name = sys.argv[1]
 
 n_gram_size = 3
 
-vocab = pickle.load(open("data/vocab.pkl","rb"))
-types = pickle.load(open("data/types.pkl","rb"))
-a_sets = pickle.load(open("data/a_sets.pkl","rb"))
-vocab_to_types = pickle.load(open("data/vocab_to_types.pkl",'rb')) # word to list 
-vocab_to_a_sets = pickle.load(open("data/vocab_to_a_sets.pkl",'rb')) # word to an a_sets, can be modified to a list of a_sets
+vocab = pickle.load(open("data/{}_vocab.pkl".format(cor_name),"rb"))
+types = pickle.load(open("data/{}_types.pkl".format(cor_name),"rb"))
+a_sets = pickle.load(open("data/{}_a_sets.pkl".format(cor_name),"rb"))
+vocab_to_types = pickle.load(open("data/{}_vocab_to_types.pkl".format(cor_name),'rb')) # word to list 
+vocab_to_a_sets = pickle.load(open("data/{}_vocab_to_a_sets.pkl".format(cor_name),'rb')) # word to an a_sets, can be modified to a list of a_sets
 #should be loaded from files
 #learning git
 

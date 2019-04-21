@@ -5,9 +5,9 @@ laplace
 import pickle
 from util_codes.utils import *
 
-def load_sentences():
+def load_sentences(cor_name):
 	
-	sentences = pickle.load(open("data/training.pkl","rb"))
+	sentences = pickle.load(open("data/{}_sentences.pkl".format(cor_name),"rb"))
 	words = list()
 	tags = list()
 
@@ -27,11 +27,11 @@ def load_sentences():
 
 	return words, tags
 
-def count_word(n_gram_size):
+def count_word(cor_name):
 	'''
 	use previous two words
 	'''
-	sentences,_ = load_sentences()
+	sentences,_ = load_sentences(cor_name)
 
 	n_gram_count = dict()
 	sub_n_gram_count = dict()
@@ -44,7 +44,7 @@ def count_word(n_gram_size):
 		idx += 1
 
 		sentence.insert(0,"_START_")
-		n_grams = ngrams(sentence, n_gram_size)
+		n_grams = ngrams(sentence, 3)
 
 		for g in n_grams:
 			if g in n_gram_count:
@@ -60,13 +60,13 @@ def count_word(n_gram_size):
 			else:
 				sub_n_gram_count[sub_g] = 1
 
-	pickle.dump(n_gram_count, open('data/n_gram_count_word_size{}.pkl'.format(n_gram_size),'wb'))
-	pickle.dump(sub_n_gram_count, open('data/sub_n_gram_count_word_size{}.pkl'.format(n_gram_size),'wb'))
+	pickle.dump(n_gram_count, open('data/{}_n_gram_count_word.pkl'.format(cor_name),'wb'))
+	pickle.dump(sub_n_gram_count, open('data/{}_sub_n_gram_count_word.pkl'.format(cor_name),'wb'))
 
 
 
 
-def count_sense(n_gram_size):
+def count_sense():
 	words, sentences = load_sentences()
 
 	n_gram_count = dict() #N1
@@ -102,7 +102,7 @@ def count_sense(n_gram_size):
 
 				ID += 1
 
-		n_grams = ngrams(tokens, n_gram_size)
+		n_grams = ngrams(tokens, 3)
 
 		for g in n_grams:
 
@@ -132,17 +132,20 @@ def count_sense(n_gram_size):
 	s_to_sets = dict()
 
 	'''
-	pickle.dump(all_A_sets, open('data/all_A_sets_size{}.pkl'.format(n_gram_size),'wb'))
-	pickle.dump(id_to_A_sets, open('data/id_to_A_sets_size{}.pkl'.format(n_gram_size),'wb'))
-	pickle.dump(n_gram_count,open('data/n_gram_count_size{}.pkl'.format(n_gram_size),'wb'))
-	pickle.dump(s_to_sets, open('data/s_to_sets_size{}.pkl'.format(n_gram_size),'wb'))
-	pickle.dump(sub_n_gram_count,open('data/sub_n_gram_count_size{}.pkl'.format(n_gram_size),'wb'))
+	pickle.dump(all_A_sets, open('data/all_A_sets.pkl','wb'))
+	pickle.dump(id_to_A_sets, open('data/id_to_A_sets.pkl','wb'))
+	pickle.dump(n_gram_count,open('data/n_gram_count.pkl','wb'))
+	pickle.dump(s_to_sets, open('data/s_to_sets.pkl','wb'))
+	pickle.dump(sub_n_gram_count,open('data/sub_n_gram_count.pkl','wb'))
 
 def main():
 	import sys
-	n_gram_size = int(sys.argv[1])
+	cor_name = sys.argv[1]
 	
-	count_word(n_gram_size)
+
+	
+
+	count_word(cor_name)
 
 
 main()

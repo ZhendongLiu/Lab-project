@@ -51,6 +51,8 @@ def pre_process_sent(sent):
 		
 		token = doc[i]
 
+		token_str = str(token)
+
 		if str(token) == '':
 			i += 1
 			continue
@@ -66,8 +68,8 @@ def pre_process_sent(sent):
 			continue
 
 		elif token.like_num:
-			words.append(str(token))
-			dic[str(token)] = "_NUMBER_"
+			words.append(token_str)
+			dic[token_str] = "_NUMBER_"
 				
 
 		elif token.is_punct:
@@ -76,7 +78,7 @@ def pre_process_sent(sent):
 			#words.append(str(token))
 			
 			#dic[str(token)] = "_PUNCT_"
-		elif '*' in str(token) or '=' in str(token) or '#' in str(token):
+		elif '*' in token_str or '=' in token_str or '#' in token_str:
 			i += 1
 			continue		
 
