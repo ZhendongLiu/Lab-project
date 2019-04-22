@@ -101,8 +101,30 @@ def pickle_from_raw_texts(file_path, sentences, cor_name, frequency_bound = 5):
 	
 	'''
 	procedure:
-
 	
+	first pass:
+		tag the words of sentences with a-set/{pos|entity_name}
+		if the tag is not a_set, replace the word with it's tag to reduce the vocab size
+		record word frequency 
+		store each sentence as list of pairs, pair: (word, tag)
+		and the whole sentence corpus as list of lists
+
+	second pass:
+		run through the list created above
+		replace the low-frequency words with "UNK"
+
+		if it's not low-frequency word:
+			if this word has an a-set tagging:
+				1. record this word into the vocab if it's not already there
+				2. record each type in the a-set
+				3. record a-set
+				4. map this word to it's type/a-set
+		
+		update the sentence list (only difference is "UNK" replacement)
+		
+				
+
+
 
 	'''
 
@@ -127,6 +149,7 @@ def pickle_from_raw_texts(file_path, sentences, cor_name, frequency_bound = 5):
 			
 			if type(tag) != frozenset:
 				#if it doesn't have a-set tagging, then replace the word with it's tag
+				#
 				word = tag
 
 			if word in frequency:
