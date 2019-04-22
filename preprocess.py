@@ -158,6 +158,8 @@ def pickle_from_raw_texts(file_path, sentences, cor_name, frequency_bound = 5):
 						vocab_to_types[word] = set()
 
 					for t in tag:
+						print(t)
+						print(type(t))
 						types.add(t)
 						vocab_to_types[word].add(t)
 				

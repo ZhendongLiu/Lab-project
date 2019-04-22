@@ -7,7 +7,7 @@ from util_codes.utils import *
 
 def load_sentences(cor_name):
 	
-	sentences = pickle.load(open("data/{}_sentences.pkl".format(cor_name),"rb"))
+	sentences = pickle.load(open("data/text8_out/{}_sentences.pkl".format(cor_name),"rb"))
 	words = list()
 	tags = list()
 

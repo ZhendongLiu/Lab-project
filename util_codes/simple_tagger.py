@@ -41,6 +41,7 @@ def tag_word_wn(token):
     if pos not in "nvar":
         return frozenset(),word
 
+    
     return frozenset(wn.synsets(word, pos)), word
 
 def tag_sentence(sentence):

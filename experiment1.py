@@ -24,7 +24,7 @@ import sys
 
 cor_name = sys.argv[1]
 sent_size = int(sys.argv[2])
-test_semcor(sent_size)
+
 
 vocab = pickle.load(open("data/{}_vocab.pkl".format(cor_name),"rb"))
 types = pickle.load(open("data/{}_types.pkl".format(cor_name),"rb"))
@@ -33,14 +33,16 @@ vocab_to_types = pickle.load(open("data/{}_vocab_to_types.pkl".format(cor_name),
 vocab_to_a_sets = pickle.load(open("data/{}_vocab_to_a_sets.pkl".format(cor_name),'rb'))
 vocab_to_idx = pickle.load(open("data/{}_vocab_to_idx.pkl".format(cor_name),'rb'))
 
-n_gram_count_word = pickle.load(open("data/{}_n_gram_count_word_size3.pkl".format(cor_name),'rb'))
-sub_n_gram_count_word = pickle.load(open("data/{}_sub_n_gram_count_word_size3.pkl".format(cor_name),'rb'))
+n_gram_count_word = pickle.load(open("data/{}_n_gram_count_word.pkl".format(cor_name),'rb'))
+sub_n_gram_count_word = pickle.load(open("data/{}_sub_n_gram_count_word.pkl".format(cor_name),'rb'))
 
 #spa.save_npz('data/{}_W.npz'.format(cor_name),W)
 W = spa.load_npz('data/{}_W.npz'.format(cor_name))
 W = W.todense()
 A = spa.load_npz('data/{}_A.npz'.format(cor_name))
 S = spa.load_npz('data/{}_S.npz'.format(cor_name))
+T = spa.load_npz('data/{}_T.npz'.format(cor_name))
+
 
 def word_distribution_to_td(word_d, word_index):
 	'''
@@ -62,6 +64,28 @@ def word_distribution_to_td(word_d, word_index):
 
 	return t_in_w_distribution
 
+def parse_tagged_chunks(string):
+	lemma_string = 'Lemma'
+	lemma = ''
+	position = string.find(lemma_string)
+
+	if position != -1:
+		start_lemma = position + len(lemma_string) + 1
+		end_lemma = string.find(')')
+		lemma = string[start_lemma + 1 : end_lemma - 1]
+		string = string[end_lemma + 2 : ]
+
+	tag_pos_start = string.rfind('(')
+	tag_pos_end = string.find(')', tag_pos_start)
+	string = string[tag_pos_start + 1 : tag_pos_end]
+	position = string.find(' ')
+	pos_tag = string[: position]
+	string = string[position + 1: ]
+
+	return string, pos_tag, lemma
+def clean_lemma(lemma):
+	split_lemma = lemma.split('.')
+	return '.'.join(split_lemma[:3])
 
 def word_distribution_from_ngram(ngram):
 	#use laplace
@@ -128,6 +152,9 @@ def whole_sent_distribution(sentence):
 			words_distributions.append(dic[word])
 			continue
 
+		if word not in vocab_to_idx:
+			words_distributions.append("word not in training")
+			continue
 		word_distribution = word_distribution_from_ngram(g)
 		type_distribution = word_distribution_to_td(word_distribution, vocab_to_idx[word])
 
@@ -277,11 +304,11 @@ def test_semcor(size):
 
 			
 					
-
+		
 		print("total tasks:{}".format(total))
 		#print("zero_distribution:{}, percentage:{}".format(zero_distribution, zero_distribution/total))
 		print("top1 correct     :{}, percentage:{}".format(top1,top1/total))
 		print("top2 correct     :{}, percentage:{}".format(top2, top2/total))
 		print("trivial          :{}, percentage:{}".format(trivil, trivil/total))
 		
-
+test_semcor(sent_size)
