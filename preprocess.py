@@ -98,6 +98,14 @@ def pickle_from_raw_texts(file_path, sentences, cor_name, frequency_bound = 5):
 	
 	i = 0
 	start = time.time()
+	
+	'''
+	procedure:
+
+	
+
+	'''
+
 	for sentence in sentences:
 		
 		words, taggings, dic = pre_process_sent(sentence)

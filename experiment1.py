@@ -26,19 +26,21 @@ cor_name = sys.argv[1]
 sent_size = int(sys.argv[2])
 
 
-vocab = pickle.load(open("data/{}_vocab.pkl".format(cor_name),"rb"))
-types = pickle.load(open("data/{}_types.pkl".format(cor_name),"rb"))
-a_sets = pickle.load(open("data/{}_a_sets.pkl".format(cor_name),"rb"))
-vocab_to_types = pickle.load(open("data/{}_vocab_to_types.pkl".format(cor_name),'rb')) # word to list 
-vocab_to_a_sets = pickle.load(open("data/{}_vocab_to_a_sets.pkl".format(cor_name),'rb'))
+vocab = pickle.load(open("data/text8_out/{}_vocab.pkl".format(cor_name),"rb"))
+types = pickle.load(open("data/text8_out/{}_types.pkl".format(cor_name),"rb"))
+a_sets = pickle.load(open("data/text8_out/{}_a_sets.pkl".format(cor_name),"rb"))
+vocab_to_types = pickle.load(open("data/text8_out/{}_vocab_to_types.pkl".format(cor_name),'rb')) # word to list 
+vocab_to_a_sets = pickle.load(open("data/text8_out/{}_vocab_to_a_sets.pkl".format(cor_name),'rb'))
 vocab_to_idx = pickle.load(open("data/{}_vocab_to_idx.pkl".format(cor_name),'rb'))
 
 n_gram_count_word = pickle.load(open("data/{}_n_gram_count_word.pkl".format(cor_name),'rb'))
 sub_n_gram_count_word = pickle.load(open("data/{}_sub_n_gram_count_word.pkl".format(cor_name),'rb'))
 
 #spa.save_npz('data/{}_W.npz'.format(cor_name),W)
-W = spa.load_npz('data/{}_W.npz'.format(cor_name))
-W = W.todense()
+#W = spa.load_npz('data/{}_W.npz'.format(cor_name))
+#W = W.todense()
+W = numpy.load(open("data/{}_W.pkl".format(cor_name),'rb'))
+
 A = spa.load_npz('data/{}_A.npz'.format(cor_name))
 S = spa.load_npz('data/{}_S.npz'.format(cor_name))
 T = spa.load_npz('data/{}_T.npz'.format(cor_name))
@@ -54,14 +56,18 @@ def word_distribution_to_td(word_d, word_index):
 
 	from scipy.sparse import csc_matrix
 
+
+	flat_a_set_distribution = word_d * A
+
 	
+	flat_t_distribution = flat_a_set_distribution * S
 
-	flat_a_set_distribution = word_d * a_sparse
-
-	flat_t_distribution = flat_a_set_distribution * s_sparse
+	all_zero = True
 
 	t_in_w_distribution = W[word_index] * flat_t_distribution
 
+
+	
 	return t_in_w_distribution
 
 def parse_tagged_chunks(string):
@@ -126,7 +132,7 @@ def word_distribution_from_ngram(ngram):
 		p1 = laplace_estimate(ngram_count,N1, B1)
 		distribution.append(p1/p2)
 
-	return scipy.array(distribution)
+	return numpy.array(distribution)
 
 def whole_sent_distribution(sentence):
 	'''
@@ -157,13 +163,16 @@ def whole_sent_distribution(sentence):
 			continue
 		word_distribution = word_distribution_from_ngram(g)
 		type_distribution = word_distribution_to_td(word_distribution, vocab_to_idx[word])
-
+		type_distribution = numpy.array(type_distribution)
 		distribution = dict()
 		
+
 		for i in range(len(type_distribution)):
+			
 			if type_distribution[i] != 0:
 				distribution[types[i]] = type_distribution[i]
 
+		
 		distribution = sort_result(distribution)
 		words_distributions.append(distribution)
 
@@ -304,7 +313,7 @@ def test_semcor(size):
 
 			
 					
-		
+
 		print("total tasks:{}".format(total))
 		#print("zero_distribution:{}, percentage:{}".format(zero_distribution, zero_distribution/total))
 		print("top1 correct     :{}, percentage:{}".format(top1,top1/total))
