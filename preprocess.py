@@ -1,3 +1,9 @@
+'''
+python3 preprocess.py text8/semcor lenth/-1
+
+-1: train on all sentences
+'''
+
 from nltk.corpus import semcor
 from nltk.corpus import wordnet as wn
 
@@ -10,6 +16,7 @@ from util_codes.utils import *
 import pickle
 import numpy
 
+import time
 
 
 def text8_raw_sentences(length):
@@ -69,7 +76,7 @@ def semcor_raw_sentences(length):
 
 
 
-def pickle_from_raw_texts(sentences, cor_name, frequency_bound = 5):
+def pickle_from_raw_texts(file_path, sentences, cor_name, frequency_bound = 5):
 	'''
 	preprocess a list of raw sentences 
 	'''
@@ -90,6 +97,7 @@ def pickle_from_raw_texts(sentences, cor_name, frequency_bound = 5):
 	#count the word frequency
 	
 	i = 0
+	start = time.time()
 	for sentence in sentences:
 		
 		words, taggings, dic = pre_process_sent(sentence)
@@ -97,9 +105,16 @@ def pickle_from_raw_texts(sentences, cor_name, frequency_bound = 5):
 		if len(words) <= 20:
 			continue
 
-		print(i)
+		if i % 100 == 0:
+
+			print(i)
+			now = time.time()
+			print(now - start)
+			start = now
+			
 		i += 1
 		pairs = []
+
 		for word,tag in zip(words, taggings):
 			
 			if type(tag) != frozenset:
@@ -158,83 +173,23 @@ def pickle_from_raw_texts(sentences, cor_name, frequency_bound = 5):
 	for i in vocab_to_types.items():
 		vocab_to_types[i[0]] = frozenset(i[1])
 
-	with open('data/{}_sentences.pkl'.format(cor_name),'wb') as outfile:
+	with open('{}/{}_sentences.pkl'.format(file_path,cor_name),'wb') as outfile:
 		pickle.dump(processed_sentences, outfile, pickle.HIGHEST_PROTOCOL)
 
-	with open('data/{}_vocab.pkl'.format(cor_name),'wb') as outfile:
+	with open('{}/{}_vocab.pkl'.format(file_path,cor_name),'wb') as outfile:
 		pickle.dump(list(vocab), outfile, pickle.HIGHEST_PROTOCOL)
 
-	with open('data/{}_types.pkl'.format(cor_name),'wb') as outfile:
+	with open('{}/{}_types.pkl'.format(file_path,cor_name),'wb') as outfile:
 		pickle.dump(list(types), outfile, pickle.HIGHEST_PROTOCOL)
 
-	with open('data/{}_a_sets.pkl'.format(cor_name),'wb') as outfile:
+	with open('{}/{}_a_sets.pkl'.format(file_path,cor_name),'wb') as outfile:
 		pickle.dump(list(a_sets), outfile, pickle.HIGHEST_PROTOCOL)
 
-	with open('data/{}_vocab_to_types.pkl'.format(cor_name),'wb') as outfile:
+	with open('{}/{}_vocab_to_types.pkl'.format(file_path,cor_name),'wb') as outfile:
 		pickle.dump(vocab_to_types, outfile, pickle.HIGHEST_PROTOCOL)
 
-	with open('data/{}_vocab_to_a_sets.pkl'.format(cor_name),'wb') as outfile:
+	with open('{}/{}_vocab_to_a_sets.pkl'.format(file_path,cor_name),'wb') as outfile:
 		pickle.dump(vocab_to_a_sets, outfile, pickle.HIGHEST_PROTOCOL)
-
-
-
-	'''
-	for sentence in sentences:
-
-		words, taggings, dic = pre_process_sent(sentence)
-		
-		if len(words) <= 20:
-			continue
-		
-		print(idx)
-		print('|'.join(words))
-		idx += 1
-		#store each word, sense, a_set and the mapping from word to types, from word to a_set
-		
-		for word, tag in zip(words, taggings):
-			
-			
-			pair = (word,tag)
-			pairs.append(pair)
-			
-
-			
-
-
-			a_sets.add(tag)
-			vocab_to_a_sets[word] = tag
-
-			if word not in vocab_to_types:
-				vocab_to_types[word] = set()
-
-			if type(tag) == frozenset:
-				for t in tag:
-					types.add(t)
-					vocab_to_types[word].add(t)
-			else:
-				vocab_to_types[word].add(tag)
-
-		#end loop
-
-		result.append(pairs)
-	'''
-	
-	
-
-	#print(list(vocab)[:10])
-	#print(list(types)[:10])
-	#print(list(a_sets)[:10])
-	
-
-	#for i in vocab_to_types.items():
-	#	print(i)
-
-	#for j in vocab_to_a_sets.items():
-	#	print(j)
-	#result = tuple(result)
-
-	
-
 
 
 
@@ -244,10 +199,10 @@ def main():
 	#length = -1 if you want all
 	name = sys.argv[1]
 	length = int(sys.argv[2])
-
+	file_path = sys.argv[3]
 	if name == 'semcor':
-		pickle_from_raw_texts(semcor_raw_sentences(length),name)
+		pickle_from_raw_texts(file_path, semcor_raw_sentences(length),name)
 	else:
-		pickle_from_raw_texts(text8_raw_sentences(length),name)
+		pickle_from_raw_texts(file_path, text8_raw_sentences(length),name)
 	
 main()
